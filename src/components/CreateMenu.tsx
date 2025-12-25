@@ -13,6 +13,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
+
 import LoadingGrid from './LoadingGrid'
 import ImageCard from './ImageCard'
 
@@ -24,19 +25,21 @@ const CreateMenu = () => {
 
     function handleCreateSection() {
 
-        const searchRange = 10 // Usuário deve escolher (Do 1 ao 15)
         setLoading(true)
 
-        createSection(searchRange).then((res) => {
+        createSection().then((res) => {
             
-            if (res instanceof Error) {
-                // console.log(res.message)
-                setLoading(false)
-                return
-            } else {
-                setImages(res)
-                setLoading(false)
-            }
+
+            console.log(res)
+
+            // if (res instanceof Error) {
+            //     console.log(res.message)
+            //     setLoading(false)
+            //     return
+            // } else {
+            //     setImages(res)
+            //     setLoading(false)
+            // }
 
         })
 

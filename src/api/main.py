@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from db import get_connection
 from dotenv import load_dotenv
@@ -25,11 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-TEMP_DIR = "temp"
-os.makedirs(TEMP_DIR, exist_ok=True)
-
-class CompareRequest(BaseModel):
-    image: str
+class CompareImageRequest(BaseModel):
+    clipboard: str
+    images: list
 
 @app.get("/api/getdata")
 def get_data():
@@ -50,5 +49,12 @@ def get_data():
         raise HTTPException(status_code=500, detail="Erro ao acessar o banco")
     
 
-@app.get("/api/compareImages")
-def compare_images():
+@app.post("/api/compareImages")
+async def compare_images(clipedImage: CompareImageRequest):
+
+    ### Nomear melhor as variaveis
+    
+    # clipedImage = clipedImage.clipboard
+    # images = clipedImage.images
+
+    return clipedImage 

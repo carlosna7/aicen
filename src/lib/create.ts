@@ -3,31 +3,50 @@ import { fetchDatabase } from "./fetchDatabase";
 import { imageUrlToBase64 } from "./imageUrlToBase64";
 // import { cosineSimilarity } from "./cosine";
 
-export async function createSection(searchRange: number) {
+export async function createSection() {
 
-    // // pega do clipboard
-    // const blob = await getClipboardImage();
-    // if (!blob) return new Error("Sem imagem no clipboard");
-
-    // // clipboard → base64
-    // const clippedBase64 = await new Promise<string>((resolve) => {
-    //     const reader = new FileReader();
-    //     reader.onloadend = () => resolve(reader.result as string);
-    //     reader.readAsDataURL(blob);
-    // });
-
-    // console.log(clippedBase64)
+    // pega do clipboard
+    const blob = await getClipboardImage();
+    if (!blob) return new Error("Sem imagem no clipboard");
     
-    // // pede embedding ao backend
+    const databaseImages = await fetchDatabase()
 
-    // // pega lista do BD
-    // const data = await fetchDatabase();
-    // const matches = [];
+    const databaseImagesBase64 = await Promise.all(
+        databaseImages.map(async el => {
+        
+            const base64 = await imageUrlToBase64(el.image_path);
+            
+            return base64;
+        })
+    );
 
-    // // ordenar
-    // matches.sort((a, b) => b.score - a.score);
+    // clipboard to base64
+    const clippedBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+    });
 
-    // return matches.slice(0, searchRange);
+    const payload = {
+        clipboard: clippedBase64,
+        images: databaseImagesBase64
+    };
+    
+    const response = await fetch(`http://127.0.0.1:8000/api/compareImages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    if (!response.ok) {
+        throw new Error('Erro na requisição: ' + response.status)
+    }
 
-    return new Error("Not implemented");
+    const apiResponse = await response.json()
+
+    console.log(apiResponse)
+    
+    return apiResponse
+
 }
