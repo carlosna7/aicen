@@ -1,9 +1,9 @@
+import { DatabaseItem } from "@/types/tipesDatabase";
 import { getClipboardImage } from "./clipboard";
 import { fetchDatabase } from "./fetchDatabase";
 import { imageUrlToBase64 } from "./imageUrlToBase64";
-// import { cosineSimilarity } from "./cosine";
 
-export async function createSection() {
+export async function createSection(selectedOption: string | null) {
 
     // pega do clipboard
     const blob = await getClipboardImage();
@@ -11,14 +11,17 @@ export async function createSection() {
     
     const databaseImages = await fetchDatabase()
 
-    const databaseImagesBase64 = await Promise.all(
-        databaseImages.map(async el => {
-        
-            const base64 = await imageUrlToBase64(el.image_path);
-            
-            return base64;
+    // console.log(databaseImages)
+
+    const databaseImagesToBase64 = await Promise.all(
+        databaseImages.map(async (el: DatabaseItem ) => {
+
+            return await imageUrlToBase64(el.image_path);
+
         })
     );
+    
+    // console.log(databaseImagesToBase64)
 
     // clipboard to base64
     const clippedBase64 = await new Promise<string>((resolve) => {
@@ -29,7 +32,8 @@ export async function createSection() {
 
     const payload = {
         clipboard: clippedBase64,
-        images: databaseImagesBase64
+        images: databaseImagesToBase64,
+        type: selectedOption
     };
     
     const response = await fetch(`http://127.0.0.1:8000/api/compareImages`, {
@@ -39,13 +43,10 @@ export async function createSection() {
         },
         body: JSON.stringify(payload)
     })
-    if (!response.ok) {
-        throw new Error('Erro na requisição: ' + response.status)
-    }
+    
+    if (!response.ok) throw new Error('Erro na requisição: ' + response.status)
 
     const apiResponse = await response.json()
-
-    console.log(apiResponse)
     
     return apiResponse
 

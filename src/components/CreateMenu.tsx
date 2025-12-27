@@ -3,6 +3,20 @@ import { createSection } from '@/lib/create'
 import { DatabaseItem } from '@/types/tipesDatabase'
 
 import { Button } from './ui/button'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group"
+
 import {
     Drawer,
     DrawerClose,
@@ -16,18 +30,24 @@ import {
 
 import LoadingGrid from './LoadingGrid'
 import ImageCard from './ImageCard'
+import { getData } from '@/hooks/useDatabase'
 
 const CreateMenu = () => {
 
     const [images, setImages] = useState<Array<{item: DatabaseItem; score: number}>>([]);
     const [loading, setLoading] = useState(false)
-    const [open, setOpen] = useState(false)
+    const [openDrawer, setOpenDrawer] = useState(false)
+    const [openMiniModal, setOpenMiniModal] = useState(false)
+    const [selectedOption, setSelectedOption] = useState<string | null>(null)
+
+    const { data } = getData()    
+    const unique = [...new Set(data.map(item => item.types))]
 
     function handleCreateSection() {
 
         setLoading(true)
 
-        createSection().then((res) => {
+        createSection(selectedOption).then((res) => {
             
 
             console.log(res)
@@ -46,17 +66,52 @@ const CreateMenu = () => {
     }
 
     useEffect(() => {
-        if (open) {
+        if (openDrawer) {
             handleCreateSection()
         }
-    }, [open])
+    }, [openDrawer])
 
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={openDrawer} onOpenChange={setOpenDrawer}>
 
-            <DrawerTrigger>
-                <Button variant='outline'>Create</Button>
-            </DrawerTrigger>
+            <Button variant='outline' onClick={() => setOpenMiniModal(true)}>Create</Button>
+
+            <Dialog open={openMiniModal} onOpenChange={setOpenMiniModal}>
+                <DialogContent>
+
+                    <DialogHeader>
+                        <DialogTitle>Escolha uma opção</DialogTitle>
+                    </DialogHeader>
+
+                    <RadioGroup
+                        value={selectedOption ?? ""}
+                        onValueChange={setSelectedOption}
+                        className="space-y-2"
+                    >
+                        
+                        {unique.map((item) => (
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value={item} id={item} />
+                                <label htmlFor={item} key={item}>{item}</label>
+                            </div>
+                        ))}
+
+                    </RadioGroup>
+
+                    <DialogFooter>
+                        <Button
+                            disabled={!selectedOption}
+                            onClick={() => {
+                            setOpenMiniModal(false)
+                            setOpenDrawer(true)
+                            }}
+                        >
+                            Confirmar
+                        </Button>
+                    </DialogFooter>
+
+                </DialogContent>
+            </Dialog>
 
             <DrawerContent>
 

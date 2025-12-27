@@ -11,6 +11,7 @@ export async function getClipboardImage(): Promise<Blob | null> {
         }
 
         const blob = await item.getType("image/png")
+        
         return blob
 
     } catch (error) {
